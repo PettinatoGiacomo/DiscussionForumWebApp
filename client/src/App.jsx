@@ -1,35 +1,118 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import './App.css';
+
+import dayjs from 'dayjs';
+
+import { React, useState, useEffect } from 'react';
+import { Container, Row, Col, Button } from 'react-bootstrap';
+import { Routes, Route, Outlet, Link, useParams, Navigate, useNavigate } from 'react-router';
+import { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout } from './components/Layout';
+import API from './API.js';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const navigate = useNavigate();
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);//user info
+  const [loggedInTotp, setLoggedInTotp] = useState(false);
+  const [message, setMessage] = useState('');
+  const [dirty, setDirty] = useState(true);
+
+    // If an error occurs, the error message will be shown using a state.
+  const handleErrors = (err) => {
+    //console.log('DEBUG: err: '+JSON.stringify(err));
+    let msg = '';
+    if (err.error)
+      msg = err.error;
+    else if (err.errors) {
+      if (err.errors[0].msg)
+        msg = err.errors[0].msg + " : " + err.errors[0].path;
+    } else if (Array.isArray(err))
+      msg = err[0].msg + " : " + err[0].path;
+    else if (typeof err === "string") msg = String(err);
+    else msg = "Unknown Error";
+
+    setMessage(msg); //only the last error is shown.
+
+    if (msg === 'Not authenticated')
+      setTimeout(() => {  // do logout in the app state
+        setUser(undefined); setLoggedIn(false); setLoggedInTotp(false); setDirty(true);
+      }, 2000);
+    else
+      setTimeout(()=>setDirty(true), 2000);  // Fetch the current version from server, after a while
+  }
+
+  useEffect(()=> {
+    const checkAuth = async() => {
+      try {
+        // here you have the user info, if already logged in
+        const user = await API.getUserInfo();
+        setLoggedIn(true);
+        setUser(user);
+        if (user.isTotp)
+          setLoggedInTotp(true);
+      } catch(err) {
+        // NO need to do anything: user is simply not yet authenticated
+      }
+    };
+    checkAuth();
+  }, []);  // The useEffect callback is called only the first time the component is mounted.
+
+  const handleLogin = async (credentials) => {
+    try {
+      const user = await API.logIn(credentials);
+      setUser(user);
+      setLoggedIn(true);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const handleLogout = async () => {
+    await API.logOut();
+    setLoggedIn(false);
+    setLoggedInTotp(false);
+    // clean up everything
+    setUser(null);
+  };
+
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Container fluid>
+      <Routes>
+        <Route path="/" element={
+          <GenericLayout loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} logout={handleLogout} />
+        }
+        />
+        <Route path='/login' element={
+          <LoginWithTotp loggedIn={loggedIn} login={handleLogin} user={user} setLoggedInTotp={setLoggedInTotp}/>
+          } />
+      </Routes>
+    </Container>
   )
 }
 
-export default App
+/*
+admin logged in+otp -> navigate to homepage
+user logged in -> navigate to homepage
+admin logged in -> navigate to TOTP layout
+user/admin not logged in -> navigate to login layout
+*/
+function LoginWithTotp(props) {
+  if (props.loggedIn) {
+    if (props.user.canDoTotp) {
+      if (props.loggedInTotp) {
+        return <Navigate replace to='/' />;
+      } else {
+        return <TotpLayout totpSuccessful={() => props.setLoggedInTotp(true)} />;
+      }
+    } else {
+      return <Navigate replace to='/' />;
+    }
+  } else {
+    return <LoginLayout login={props.login} />;
+  }
+}
+
+
+export default App;

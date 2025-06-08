@@ -12,9 +12,43 @@
 
 ## API Server
 
-- POST `/api/login`
-  - request parameters and request body content
-  - response body content
+- POST `/api/sessions`
+  - **request**: json object with email and password
+    ```
+      {
+      "password": "pwd",
+      "username": "u1@p.it"
+      } 
+    ```
+  - **response**: json object with user informations to identify user and wheter it's admin or not
+    ```
+    {
+      "id": 1,
+      "username": "u1@p.it",
+      "name": "Admin1",
+      "canDoTotp": true,
+      "isTotp": false
+    }
+    ```
+- POST `/api/login-totp`
+  - **request**: json object with otp
+    ```
+    {
+      "code": "774567"
+    }
+    ```
+  - **response**: json object with user informations to identify user and wheter it's admin or not
+    ```
+    {
+      "id": 1,
+      "username": "u1@p.it",
+      "name": "Admin1",
+      "canDoTotp": true,
+      "isTotp": false
+    }
+    ```
+- GET `/api/sessions/current`
+- DELETE `/api/sessions/current`
 - GET `/api/posts`
   - **Response body**: JSON object with the list of posts, or description of the error(s):
     ```
