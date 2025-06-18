@@ -1,5 +1,3 @@
-import 'bootstrap-icons/font/bootstrap-icons.css';
-
 import { Navbar, Nav, Form } from 'react-bootstrap';
 
 import { LoginButton, LogoutButton } from './Auth';
@@ -9,7 +7,7 @@ const Navigation = (props) => {
     return (
         <Navbar bg="dark" expand="md" variant="dark" className="navbar-padding">
             <Navbar.Brand className="mx-2">
-                Forum
+                <h1>Forum</h1>
             </Navbar.Brand>
             <Nav>
                 <Navbar.Text className="mx-2 fs-5">

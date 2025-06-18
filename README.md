@@ -52,8 +52,15 @@
 - GET `/api/posts`
   - **Response body**: JSON object with the list of posts, or description of the error(s):
     ```
-    [ { "title": "First post!", "author": "admin1", "text": "This is the first post of the forum",
-    "maxComments": 10, "actualComments": 2, "timesptamp": ??? }, ... ]
+    [ { 
+      "title": "First post!",
+      "author": "admin1",
+      "text": "This is the first post of the forum",
+      "maxComments": 10,
+       "actualComments": 2,
+        "timesptamp": ??? 
+      }, 
+      ... ]
     ```
 - GET `/api/comments`
   - request parameters and request body content
@@ -62,9 +69,14 @@
 
 ## Database Tables
 
-- Table `users` - contains xx yy zz
-- Table `something` - contains ww qq ss
-- ...
+- Table `users` - contains id, email, name, hash, salt, secret for 2FA (only for admins)
+- Table `posts` - contains id, userID, title, text, maxComments, timestamp
+- Table `comments` - contains id, postID, authorID, text, timestamp
+
+All of the IDs are integers with autoincrement set as primary keys
+The fields: userID, postID and authorID are foreign keys
+
+The DB also contains rules for comments and post uniqueness
 
 ## Main React Components
 

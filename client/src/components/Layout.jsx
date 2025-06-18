@@ -38,9 +38,9 @@ function TotpLayout(props) {
     </Row>
   );
 }
-
+GenericLayout
   function GenericLayout(props) {
-  
+  //Generic layout used for homepage and /post/:id routes it only contains the navigation bar and the outlet for the content
     return (
       <>
       {
@@ -56,12 +56,8 @@ function TotpLayout(props) {
         </Col></Row>
 
         <Row>
-          <Col xs={3}>
-          </Col>
-  
-          <Col xs={9}>
+          <Col>
             <Outlet />
-  
           </Col>
         </Row>
       </>

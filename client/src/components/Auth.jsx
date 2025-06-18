@@ -69,8 +69,6 @@ function LoginForm(props) {
 
   const [errorMessage, setErrorMessage] = useState('');
 
-  const navigate = useNavigate();
-
 
   const handleSubmit = (event) => {
     event.preventDefault();

@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-
 const SERVER_URL = 'http://localhost:3001/api/';
 
 
@@ -32,6 +30,46 @@ function getJson(httpResponsePromise) {
       ) // connection error
   });
 }
+
+/*** Post and comments functions ***/
+/**
+ * Function to get the list of posts from the server.
+ */
+const getPosts = async () => {
+  //console.log('DEBUG: API getPosts called');
+  return getJson(fetch(SERVER_URL + 'posts', { credentials: 'include' }));
+};
+const getComments = async (postId) => {
+  //console.log('DEBUG: API getComments called');
+  return getJson(fetch(SERVER_URL + 'comments/' + postId, { credentials: 'include' }));
+}
+const getPost = async (postId) => {
+  //console.log('DEBUG: API getPost called');
+  return getJson(fetch(SERVER_URL + 'post/' + postId, { credentials: 'include' }));
+}
+
+const addComment = async (id, commentText) => {
+  console.log('DEBUG: API addComment called on post ' + id + ' with text: ' + commentText);const addComment = async (id, commentText) => {
+  return getJson(fetch(SERVER_URL + 'addComment/' + id, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',  // this parameter specifies that authentication cookie must be forwarded
+    body: JSON.stringify({ comment: commentText }),
+  })
+  )
+};
+  return getJson(fetch(SERVER_URL + 'addComment/' + id, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',  // this parameter specifies that authentication cookie must be forwarded
+    body: JSON.stringify({ comment: commentText }),
+  })
+  )
+};
 
 /*** Authentication functions ***/
 
@@ -91,5 +129,5 @@ const logOut = async() => {
   )
 }
 
-const API = {logIn, getUserInfo, logOut, totpVerify };
+const API = {logIn, getUserInfo, logOut, totpVerify, getPosts, getComments, getPost, addComment};
 export default API;

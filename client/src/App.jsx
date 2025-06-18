@@ -2,12 +2,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
 
-import dayjs from 'dayjs';
-
 import { React, useState, useEffect } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { Routes, Route, Outlet, Link, useParams, Navigate, useNavigate } from 'react-router';
 import { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout } from './components/Layout';
+import { CommentsLayout, PostsListLayout } from './components/Post';
 import API from './API.js';
 
 function App() {
@@ -18,7 +17,7 @@ function App() {
   const [message, setMessage] = useState('');
   const [dirty, setDirty] = useState(true);
 
-    // If an error occurs, the error message will be shown using a state.
+  // If an error occurs, the error message will be shown using a state.
   const handleErrors = (err) => {
     //console.log('DEBUG: err: '+JSON.stringify(err));
     let msg = '';
@@ -39,11 +38,11 @@ function App() {
         setUser(undefined); setLoggedIn(false); setLoggedInTotp(false); setDirty(true);
       }, 2000);
     else
-      setTimeout(()=>setDirty(true), 2000);  // Fetch the current version from server, after a while
+      setTimeout(() => setDirty(true), 2000);  // Fetch the current version from server, after a while
   }
 
-  useEffect(()=> {
-    const checkAuth = async() => {
+  useEffect(() => {
+    const checkAuth = async () => {
       try {
         // here you have the user info, if already logged in
         const user = await API.getUserInfo();
@@ -51,7 +50,7 @@ function App() {
         setUser(user);
         if (user.isTotp)
           setLoggedInTotp(true);
-      } catch(err) {
+      } catch (err) {
         // NO need to do anything: user is simply not yet authenticated
       }
     };
@@ -82,11 +81,15 @@ function App() {
       <Routes>
         <Route path="/" element={
           <GenericLayout loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} logout={handleLogout} />
-        }
-        />
+        }>
+          <Route index element={<PostsListLayout handleErrors={handleErrors}></PostsListLayout>} />
+          <Route path="post/:id" element={<CommentsLayout handleErrors={handleErrors}></CommentsLayout>} />
+          <Route path="*" element={<NotFoundLayout />} />
+        </Route>
         <Route path='/login' element={
-          <LoginWithTotp loggedIn={loggedIn} login={handleLogin} user={user} setLoggedInTotp={setLoggedInTotp}/>
-          } />
+          <LoginPages loggedIn={loggedIn} login={handleLogin} user={user} setLoggedInTotp={setLoggedInTotp} />
+        } />
+
       </Routes>
     </Container>
   )
@@ -98,7 +101,7 @@ user logged in -> navigate to homepage
 admin logged in -> navigate to TOTP layout
 user/admin not logged in -> navigate to login layout
 */
-function LoginWithTotp(props) {
+function LoginPages(props) {
   if (props.loggedIn) {
     if (props.user.canDoTotp) {
       if (props.loggedInTotp) {

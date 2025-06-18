@@ -58,7 +58,7 @@ passport.deserializeUser(function (user, callback) { // this user is id + email 
 const session = require('express-session');
 
 app.use(session({
-  secret: "shhhhh... it's a secret! - change it for the exam!",
+  secret: "DWopmBwlDmpX752tP2Iaa97gJ2MOa7hf",
   resave: false,
   saveUninitialized: false,
 }));
@@ -146,20 +146,51 @@ app.delete('/api/sessions/current', (req, res) => {
   });
 });
 
-// Activating the server
-const PORT = 3001;
-// Activate the server
-app.listen(PORT, (err) => {
-  if (err)
-    console.log(err);
-  else 
-    console.log(`Server listening at http://localhost:${PORT}`);
-}); 
+/*** API for posts and comments ***/
+app.get('/api/posts',(req,res)=>{
+  postDao.listPosts()
+    .then(posts => res.json(posts))
+    .catch((err) => res.status(500).json(err))
+})
+//TODO: POSTID is undefined???
+app.get('/api/comments/:postID',[ check('postID').isInt({min: 1}) ],(req,res)=>{
+  const errors = validationResult(req).formatWith(errorFormatter); // format error message
+    if (!errors.isEmpty()) {
+      return res.status(422).json( errors.errors ); // error message is sent back as a json with the error info
+    }
+  console.log('DEBUG: isLoggedIn: '+req.isAuthenticated());
+  commentDao.listComments(req.params.postID,req.isAuthenticated())
+    .then(comments => res.json(comments))
+    .catch((err) => res.status(500).json(err))
 
+})
 
+app.get('/api/post/:postID', [ check('postID').isInt({min: 1}) ], (req, res) => {
+  const errors = validationResult(req).formatWith(errorFormatter);
+  if (!errors.isEmpty()) {
+    return res.status(422).json( errors.errors );
+  }
+  postDao.getPost(req.params.postID)
+    .then(post => res.json(post))
+    .catch((err) => res.status(500).json(err))
+});
 
-
-
+app.post('/api/addComment/:postID',(req,res)=>{
+  const errors = validationResult(req).formatWith(errorFormatter);
+  if (!errors.isEmpty()) {
+    return res.status(422).json( errors.errors );
+  }
+  let author; // if the user is not logged in, author is null
+  if(!req.isAuthenticated()){
+    author= null; // anonymous user
+  }else {
+    author = req.user.id;
+  }
+  console.log('DEBUG: calling addComment with '+req.params.postID+ req.body.comment+author);
+  commentDao.addComment(req.params.postID, req.body.comment, author)
+    .then(comment => res.json(comment))
+    .catch((err) => res.status(500).json(err))
+})
 
 // activate the server
 const port = 3001;
