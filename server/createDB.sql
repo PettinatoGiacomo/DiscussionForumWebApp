@@ -1,6 +1,11 @@
+--to execute this file, use the command:
+--sqlite3 forum.db < createDB.sql
 BEGIN TRANSACTION;
 
-PRAGMA foreign_keys = ON;--enable foreign keys
+DROP TABLE IF EXISTS "users";
+DROP TABLE IF EXISTS "posts";
+DROP TABLE IF EXISTS "comments";
+DROP TABLE IF EXISTS "interestingComments";
 
 CREATE TABLE IF NOT EXISTS "users" (
 	"id"	INTEGER NOT NULL,
@@ -22,23 +27,41 @@ CREATE TABLE IF NOT EXISTS "posts" (
 	"userID"	INTEGER NOT NULL,
 	"title"	TEXT NOT NULL,
 	"text"	TEXT NOT NULL,
-	"maxComments"	INTEGER NOT NULL,
+	"maxComments"	INTEGER,
 	"timestamp"	TEXT NOT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)
 	FOREIGN KEY (userID) REFERENCES users(id)
 );
 
 INSERT INTO posts (userID, title, text, maxComments, timestamp) VALUES
-(1, 'Welcome to the Blog', 'This is the very first post. Stay tuned for more content!', 20, '2025-06-08 10:00:00'),
-(2, 'Tips for Remote Work', 'Here are some tips that helped me stay productive while working from home.', 15, '2025-06-08 11:15:00'),
-(3, 'Top 10 JavaScript Libraries in 2025', 'Check out my list of must-know JS libraries for web devs.', 30, '2025-06-08 12:45:00'),
-(4, 'Why I Switched to Linux', 'After years on Windows, I finally made the switch. Here''s why.', 25, '2025-06-08 14:00:00'),
-(5, 'The Future of AI', 'Let''s discuss where AI is headed and its impact on society.', 40, '2025-06-08 15:30:00'),
-(2, 'Book Review: Deep Work', 'A quick review of Cal Newport''s book on focus and productivity.', 10, '2025-06-08 16:20:00'),
-(1, 'How to Start a Blog in 2025', 'Step-by-step guide for launching a blog with modern tools.', 18, '2025-06-08 17:05:00'),
-(3, 'Minimalist Coding Setup', 'Here''s my take on the best tools for distraction-free coding.', 22, '2025-06-08 18:00:00'),
-(4, 'What I Learned from 100 Days of Code', 'Reflections and takeaways from the 100-day coding challenge.', 35, '2025-06-08 19:30:00'),
-(5, 'Dark Mode vs Light Mode', 'Which UI theme do you prefer and why? Let''s debate.', 28, '2025-06-08 20:10:00');
+(1, 'Welcome to the Blog', 'This is the very first post on this platform.
+I''m excited to begin this journey and share thoughts, tips, and insights.
+Stay tuned for more engaging and useful content in the coming days!', 20, '2025-06-08 10:00:00'),
+(2, 'Tips for Remote Work', 'Working from home can be both liberating and challenging. Here are a few strategies that helped me stay productive:
+1. Stick to a routine.
+2. Create a dedicated workspace.
+3. Take regular breaks.
+Hope these help you too!', 15, '2025-06-08 11:15:00'),
+(3, 'Top 10 JavaScript Libraries in 2025', 'JavaScript is evolving rapidly, and developers need to stay up to date.  Here are my top 10 must-know libraries this year, including tools for UI, state management, and performance optimization. 
+Check out the full list and let me know your favorites!', 30, '2025-06-08 12:45:00'),
+(4, 'Why I Switched to Linux', 'After spending years using Windows, I decided to take the plunge into Linux.
+This post covers my reasons for switching, the learning curve, and why I''m not looking back. If you''ve been considering Linux, this might help you decide.', 25, '2025-06-08 14:00:00'),
+(5, 'The Future of AI', 'Artificial Intelligence is rapidly shaping the world we live in.
+In this post, we explore potential developments in AI and what they mean for industries, ethics, and everyday life.
+Let''s talk about the implications together.', 40, '2025-06-08 15:30:00'),
+(2, 'Book Review: Deep Work', 'I just finished reading "Deep Work" by Cal Newport.
+This book dives deep into the importance of focused work in a distracted world. 
+Here''s a quick review, my key takeaways, and why I recommend it to anyone seeking better concentration.', 10, '2025-06-08 16:20:00'),
+(1, 'How to Start a Blog in 2025', 'Starting a blog today is easier and more powerful than ever.
+In this guide, I walk you through the step-by-step process of launching your own blog using the latest tools and best practices.
+Perfect for beginners and aspiring writers!', 18, '2025-06-08 17:05:00'),
+(3, 'Minimalist Coding Setup', 'I''ve experimented with many coding environments and tools.
+In this post, I share my minimalist setup that helps me stay focused and distraction-free. From hardware to software, here''s what works best for me.', 22, '2025-06-08 18:00:00'),
+(4, 'What I Learned from 100 Days of Code', 'I recently completed the 100 Days of Code challenge.
+This post reflects on what I learned, the habits I built, and how it transformed my coding journey.
+Highly recommended for anyone wanting to improve their skills.', 35, '2025-06-08 19:30:00'),
+(5, 'Dark Mode vs Light Mode', 'It''s the age-old debate: dark mode or light mode?
+In this post, we compare the pros and cons of both UI themes, backed by science and user preferences. Which one do you prefer, and why? Join the conversation!', 4, '2025-06-08 20:10:00');
 
 CREATE TABLE IF NOT EXISTS "comments" (
 	"id"	INTEGER NOT NULL,
@@ -48,7 +71,7 @@ CREATE TABLE IF NOT EXISTS "comments" (
 	"timestamp"	TEXT NOT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)
 	FOREIGN KEY (authorID) REFERENCES users(id)
-	FOREIGN KEY (postID) REFERENCES posts(id)
+	FOREIGN KEY (postID) REFERENCES posts(id) ON DELETE CASCADE
 );
 
 INSERT INTO comments (postID, authorID, text, timestamp) VALUES
@@ -78,10 +101,24 @@ INSERT INTO comments (postID, authorID, text, timestamp) VALUES
 (9, NULL, 'Congrats! I’m on day 42 right now.', '2025-06-08 19:40:00Z'),
 (10, NULL, 'I switch themes depending on time of day!', '2025-06-08 20:25:00');
 
+CREATE TABLE IF NOT EXISTS "interestingComments" (
+	userID INTEGER NOT NULL,
+	commentID INTEGER NOT NULL,
+	PRIMARY KEY(userID, commentID),
+	FOREIGN KEY (userID) REFERENCES users(id),
+	FOREIGN KEY (commentID) REFERENCES comments(id) ON DELETE CASCADE
+);
+
 CREATE UNIQUE INDEX IF NOT EXISTS unique_post_per_user 
 ON posts(userID, timestamp);
 
-CREATE UNIQUE INDEX IF NOT EXISTS unique_comment_per_user 
-ON comments(authorID, timestamp);
+CREATE UNIQUE INDEX IF NOT EXISTS unique_comment_per_post 
+ON comments(postID, text);
+
+CREATE UNIQUE INDEX IF NOT EXISTS unique_post_title
+ON posts(title);
+
+CREATE UNIQUE INDEX IF NOT EXISTS unique_user_name
+ON users(name);
 
 COMMIT;

@@ -1,5 +1,5 @@
-import { Navbar, Nav, Form } from 'react-bootstrap';
-
+import { Navbar, Nav, Form, Button } from 'react-bootstrap';
+import { Link } from 'react-router';
 import { LoginButton, LogoutButton } from './Auth';
 
 const Navigation = (props) => {
@@ -16,6 +16,8 @@ const Navigation = (props) => {
                 </Navbar.Text>
                 <Form className="mx-2 mt-1">
                     {props.loggedIn ? <LogoutButton logout={props.logout} /> : <LoginButton />}
+                    <Link to="/"><Button variant="outline-light">Go to the main page</Button></Link>
+                    {props.loggedIn && <Link to="/create-post"><Button variant="outline-light">Create a new post</Button></Link>}
                 </Form>
             </Nav>
         </Navbar>

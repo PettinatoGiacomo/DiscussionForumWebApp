@@ -1,6 +1,5 @@
 const SERVER_URL = 'http://localhost:3001/api/';
 
-
 /**
  * A utility function for parsing the HTTP response.
  */
@@ -49,7 +48,7 @@ const getPost = async (postId) => {
 }
 
 const addComment = async (id, commentText) => {
-  console.log('DEBUG: API addComment called on post ' + id + ' with text: ' + commentText);const addComment = async (id, commentText) => {
+  //console.log('DEBUG: API addComment called on post ' + id + ' with text: ' + commentText);
   return getJson(fetch(SERVER_URL + 'addComment/' + id, {
     method: 'POST',
     headers: {
@@ -60,21 +59,82 @@ const addComment = async (id, commentText) => {
   })
   )
 };
-  return getJson(fetch(SERVER_URL + 'addComment/' + id, {
+
+const addPost = async (title,text,maxComments) => {
+  //console.log('DEBUG: API addPost called with title: ' + title + ', text: ' + text + ', maxComments: ' + maxComments);
+  return getJson(fetch(SERVER_URL + 'addPost', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     credentials: 'include',  // this parameter specifies that authentication cookie must be forwarded
+    body: JSON.stringify({ title, text, maxComments }),
+  })
+  )
+};
+
+const editComment = async (commentId, commentText) => {
+  //console.log('DEBUG: API editComment called with id: ' + id + ', commentId: ' + commentId + ', commentText: ' + commentText);
+  return getJson(fetch(SERVER_URL + 'editComment/' + commentId, {
+    method: 'PUT',//PUT is used to update an existing resource
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include', 
     body: JSON.stringify({ comment: commentText }),
   })
   )
 };
+
+const deleteComment = async (commentId) => {
+  //console.log('DEBUG: API deleteComment called with commentId: ' + commentId);
+  return getJson(fetch(SERVER_URL + 'deleteComment/' + commentId, {
+    method: 'DELETE',//DELETE is used to delete an existing resource
+    credentials: 'include', 
+  })
+  )
+};
+
+const deletePost = async (postId) => {
+  //console.log('DEBUG: API deletePost called with postId: ' + postId);
+  return getJson(fetch(SERVER_URL + 'deletePost/' + postId, {
+    method: 'DELETE',//DELETE is used to delete an existing resource
+    credentials: 'include', 
+  })
+  )
+}
+
+const addInterestingComment = async (commentId) => {
+  //console.log('DEBUG: API addInterestingComment called with commentId: ' + commentId);
+  return getJson(fetch(SERVER_URL + 'addInterestingComment/' + commentId, {
+    method: 'POST',//POST is used to create a new resource
+    credentials: 'include', 
+  })
+  )
+}
+
+const getInterestingComments = async (postId) => {
+  //console.log('DEBUG: API getInterestingComments called with postId: ' + postId);
+  return getJson(fetch(SERVER_URL + 'interestingComments/' + postId, {
+    credentials: 'include', 
+  })
+  ).then(data => data.map(item => item.commentID)); // return only the comment IDs
+}
 
 /*** Authentication functions ***/
 
 /**
- * This function wants the TOTP code
+ * This function wants the TOTP codeconst addComment = async (id, commentText) => {
+  return getJson(fetch(SERVER_URL + 'addComment/' + id, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',  // this parameter specifies that authentication cookie must be forwarded
+    body: JSON.stringify({ comment: commentText }),
+  })
+  )
+};
  * It executes the 2FA.
  */
 const totpVerify = async (totpCode) => {
@@ -129,5 +189,5 @@ const logOut = async() => {
   )
 }
 
-const API = {logIn, getUserInfo, logOut, totpVerify, getPosts, getComments, getPost, addComment};
+const API = {logIn, getUserInfo, logOut, totpVerify, getPosts, getComments, getPost, addComment, addPost, editComment, deleteComment, deletePost, addInterestingComment, getInterestingComments};
 export default API;

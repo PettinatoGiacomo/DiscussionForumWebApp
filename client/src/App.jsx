@@ -2,10 +2,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './App.css';
 
-import { React, useState, useEffect } from 'react';
-import { Container, Row, Col, Button } from 'react-bootstrap';
-import { Routes, Route, Outlet, Link, useParams, Navigate, useNavigate } from 'react-router';
-import { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout } from './components/Layout';
+import {useState, useEffect } from 'react';
+import { Container } from 'react-bootstrap';
+import { Routes, Route, Navigate, useNavigate } from 'react-router';
+import { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout, CreatePostLayout,} from './components/Layout';
 import { CommentsLayout, PostsListLayout } from './components/Post';
 import API from './API.js';
 
@@ -80,16 +80,16 @@ function App() {
     <Container fluid>
       <Routes>
         <Route path="/" element={
-          <GenericLayout loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} logout={handleLogout} />
+          <GenericLayout message={message} setMessage={setMessage} loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} logout={handleLogout} />
         }>
-          <Route index element={<PostsListLayout handleErrors={handleErrors}></PostsListLayout>} />
-          <Route path="post/:id" element={<CommentsLayout handleErrors={handleErrors}></CommentsLayout>} />
+          <Route index element={<PostsListLayout handleErrors={handleErrors} loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp}></PostsListLayout>} />
+          <Route path="post/:id" element={<CommentsLayout user={user} loggedInTotp={loggedInTotp} loggedIn={loggedIn}></CommentsLayout>} />
+          <Route path='/login' element={
+            <LoginPages loggedIn={loggedIn} login={handleLogin} user={user} setLoggedInTotp={setLoggedInTotp} />
+          } />
+          <Route path="create-post" element={<CreatePostLayout handleErrors={handleErrors} />} />
           <Route path="*" element={<NotFoundLayout />} />
         </Route>
-        <Route path='/login' element={
-          <LoginPages loggedIn={loggedIn} login={handleLogin} user={user} setLoggedInTotp={setLoggedInTotp} />
-        } />
-
       </Routes>
     </Container>
   )

@@ -6,9 +6,10 @@ GET http://localhost:3001/api/comments/10 HTTP/1.1
 GET http://localhost:3001/api/posts/10 HTTP/1.1
 
 ###
-POST http://localhost:3001/api/addComment/1 HTTP/1.1
+POST http://localhost:3001/api/addComment/11 HTTP/1.1
 content-type: application/json
 
 {
-  "comment": "This is a test comment"
+  "comment": "This is another test comment"
 }
+###

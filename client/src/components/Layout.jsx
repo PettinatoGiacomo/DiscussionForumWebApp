@@ -1,33 +1,31 @@
 
-import { Row, Col, Button, Spinner, Alert, Toast } from 'react-bootstrap';
-import { Outlet, Link, useParams, Navigate, useLocation, useNavigate } from 'react-router';
+import { Row, Col, Button, Alert } from 'react-bootstrap';
+import { Outlet, Link} from 'react-router';
 
 import { Navigation } from './Navigation';
-import { useEffect, useState } from 'react';
 import { LoginForm, TotpForm } from './Auth';
-
-import API from '../API.js';
+import { CreatePostForm } from './Post';
 
 function NotFoundLayout(props) {
-    return (
-      <>
-        <h2>This route is not valid!</h2>
-        <Link to="/">
-          <Button variant="primary">Go back to the main page!</Button>
-        </Link>
-      </>
-    );
-  }
+  return (
+    <>
+      <h2>This route is not valid!</h2>
+      <Link to="/">
+        <Button variant="primary">Go back to the main page!</Button>
+      </Link>
+    </>
+  );
+}
 
-  function LoginLayout(props) {
-    return (
-      <Row>
-        <Col>
-          <LoginForm login={props.login} />
-        </Col>
-      </Row>
-    );
-  }
+function LoginLayout(props) {
+  return (
+    <Row>
+      <Col>
+        <LoginForm login={props.login} />
+      </Col>
+    </Row>
+  );
+}
 
 function TotpLayout(props) {
   return (
@@ -38,11 +36,21 @@ function TotpLayout(props) {
     </Row>
   );
 }
-GenericLayout
-  function GenericLayout(props) {
+
+function CreatePostLayout(props) {
+  return (
+    <Row>
+      <Col>
+        <CreatePostForm />
+      </Col>
+    </Row>
+  );
+}
+
+function GenericLayout(props) {
   //Generic layout used for homepage and /post/:id routes it only contains the navigation bar and the outlet for the content
-    return (
-      <>
+  return (
+    <>
       {
         <Row>
           <Col>
@@ -50,18 +58,20 @@ GenericLayout
           </Col>
         </Row>
       }
-        <Row><Col>
-          {props.message? <Alert className='my-1' onClose={() => props.setMessage('')} variant='danger' dismissible>
-            {props.message}</Alert> : null}
-        </Col></Row>
+      <Row><Col>
+        {props.message ? <Alert className='my-1' onClose={() => props.setMessage('')} variant='danger' dismissible>
+          {props.message}</Alert> : null}
+      </Col></Row>
 
-        <Row>
-          <Col>
-            <Outlet />
-          </Col>
-        </Row>
-      </>
-    );
-  }
-  
-  export { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout };
+      <Row>
+        <Col>
+          <Outlet />
+        </Col>
+      </Row>
+    </>
+  );
+}
+
+
+
+export { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout, CreatePostLayout };

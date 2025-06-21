@@ -111,7 +111,8 @@ function LoginForm(props) {
               onChange={(ev) => setPassword(ev.target.value)}
             />
           </Form.Group>
-          <Button className="mt-3" type="submit">Login</Button>
+          <Button className="my-2" type="submit">Login</Button>
+          <Button className='my-2 mx-2' variant='danger' onClick={() => navigate('/')}>Cancel</Button>
         </Form>
       </Col>
       <Col xs={4}></Col>

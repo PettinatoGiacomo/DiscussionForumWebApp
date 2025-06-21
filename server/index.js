@@ -4,6 +4,7 @@ const express = require('express');
 const morgan = require('morgan');  // logging middleware
 const { check, validationResult, oneOf } = require('express-validator'); // validation middleware
 const cors = require('cors');
+const dayjs = require("dayjs");
 
 const postDao = require('./dao-posts'); // module for accessing the posts table in the DB
 const userDao = require('./dao-users'); // module for accessing the user table in the DB
@@ -20,6 +21,10 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
+
+/*enable foreign keys to allow cascading deletes*/
+const db = require('./db');
+db.run('PRAGMA foreign_keys = ON;');
 
 /*** Passport ***/
 
@@ -90,6 +95,15 @@ const errorFormatter = ({ location, msg, param, value, nestedErrors }) => {
   return `${location}[${param}]: ${msg}`;
 };
 
+async function maxCommentsReached(postID) {
+  const max = await postDao.getMaxComments(postID);
+  if (max === null) return false; // no max comments set, so no limit
+  const count = await commentDao.getCommentCount(postID);
+  //(`DEBUG: maxCommentsReached: postID=${postID}, max=${Number(max)}, count=${Number(count)}`);
+  //console.log(`DEBUG: maxCommentsReached: ${Number(count) >= Number(max)}`);
+  return Number(count) >= Number(max);
+}
+
 /*** Users APIs ***/
 
 function clientUserInfo(req) {
@@ -158,7 +172,7 @@ app.get('/api/comments/:postID',[ check('postID').isInt({min: 1}) ],(req,res)=>{
     if (!errors.isEmpty()) {
       return res.status(422).json( errors.errors ); // error message is sent back as a json with the error info
     }
-  console.log('DEBUG: isLoggedIn: '+req.isAuthenticated());
+  //console.log('DEBUG: isLoggedIn: '+req.isAuthenticated());
   commentDao.listComments(req.params.postID,req.isAuthenticated())
     .then(comments => res.json(comments))
     .catch((err) => res.status(500).json(err))
@@ -175,22 +189,139 @@ app.get('/api/post/:postID', [ check('postID').isInt({min: 1}) ], (req, res) => 
     .catch((err) => res.status(500).json(err))
 });
 
-app.post('/api/addComment/:postID',(req,res)=>{
+app.post('/api/addComment/:postID',
+  check('comment').isLength({ min: 1 }),
+  (req, res) => {
+  const errors = validationResult(req).formatWith(errorFormatter);
+  if (!errors.isEmpty()) {
+    return res.status(422).json(errors.errors);
+  }
+  let author = req.isAuthenticated() ? req.user.id : null;
+
+  maxCommentsReached(req.params.postID)
+    .then(reached => {
+      if (reached) {
+        return res.status(403).json({ error: 'Maximum number of comments reached for this post.' });
+      }
+      return commentDao.addComment(req.params.postID, req.body.comment, author)
+        .then(comment => res.json(comment));
+    })
+    .catch(err => res.status(500).json(err));
+});
+
+app.post('/api/addPost', isLoggedIn, [
+  check('title').isLength({ min: 1 }),
+  check('text').isLength({ min: 1 }),
+  check('maxComments').isInt({ min: -1 })// -1 -> no limit 0 -> no comments allowed
+], (req, res) => {
   const errors = validationResult(req).formatWith(errorFormatter);
   if (!errors.isEmpty()) {
     return res.status(422).json( errors.errors );
   }
-  let author; // if the user is not logged in, author is null
-  if(!req.isAuthenticated()){
-    author= null; // anonymous user
-  }else {
-    author = req.user.id;
+
+  let post = {
+    title: req.body.title,
+    text: req.body.text,
+    userID: req.user.id, 
+    timestamp:  dayjs().format('YYYY-MM-DD HH:mm:ss').toString() // current time
+  };
+
+  if (req.body.maxComments !== undefined) {
+    if (req.body.maxComments < 0) {
+      post.maxComments = null; // no limit
+    } else {
+      post.maxComments = req.body.maxComments; // set the max comments
+    }
   }
-  console.log('DEBUG: calling addComment with '+req.params.postID+ req.body.comment+author);
-  commentDao.addComment(req.params.postID, req.body.comment, author)
-    .then(comment => res.json(comment))
-    .catch((err) => res.status(500).json(err))
-})
+
+  postDao.createPost(post)
+    .then(result => res.status(201).json(result))
+    .catch((err) => res.status(500).json(err));
+});
+
+app.put('/api/editComment/:commentID', isLoggedIn, [], (req, res) => {
+  const errors = validationResult(req).formatWith(errorFormatter);
+  if (!errors.isEmpty()) {
+    return res.status(422).json(errors.errors);
+  }
+
+  const commentID = req.params.commentID;
+  const commentText = req.body.comment;
+  let userID = req.user.id;
+  if (req.session.method === 'totp') {
+    userID = null; // if the user is logged in with TOTP, we do not check the userID, so we set it to null
+  }
+  commentDao.updateComment(commentID, commentText, userID)
+    .then(result => {
+      if (result === null) {
+        return res.status(403).json({ error: 'You are not the author of this comment.' });
+      }
+      res.status(200).json(result);
+    })
+    .catch(err => res.status(500).json(err));
+});
+
+app.delete('/api/deleteComment/:commentID', isLoggedIn, (req, res) => {
+  //console.log('DEBUG: deleteComment called with commentID: ' + req.params.commentID);
+  const errors = validationResult(req).formatWith(errorFormatter);
+  if (!errors.isEmpty()) {
+    return res.status(422).json(errors.errors);
+  }
+
+  const commentID = req.params.commentID;
+  let userID = req.user.id;
+  if (req.session.method === 'totp') {
+    userID = null; // if the user is logged in with TOTP, we do not check the userID, so we set it to null
+  }
+  
+  commentDao.deleteComment(commentID, userID)
+    .then(result => {
+      if (result === null) {
+        return res.status(403).json({ error: 'You are not the author of this comment.' });
+      }
+      res.status(200).json(result);
+    })
+    .catch(err => res.status(500).json(err));
+});
+
+app.delete('/api/deletePost/:postID', isLoggedIn, (req, res) => {
+  console.log('DEBUG: deletePost called with postID: ' + req.params.postID);
+  const errors = validationResult(req).formatWith(errorFormatter);
+  if (!errors.isEmpty()) {
+    return res.status(422).json(errors.errors);
+  }
+
+  const postID = req.params.postID;
+  let userID = req.user.id;
+  if (req.session.method === 'totp') {
+    userID = null; // if the user is logged in with TOTP, we do not check the userID, so we set it to null
+  }
+  
+  postDao.deletePost(postID, userID)
+    .then(result => {
+      if (result === null) {
+        return res.status(403).json({ error: 'You are not the author of this post.' });
+      }
+      res.status(200).json(result);
+    })
+    .catch(err => res.status(500).json(err));
+}
+);
+
+app.get('/api/interestingComments/:postID', isLoggedIn, (req, res) => {
+  commentDao.getInterestingComments(req.params.postID, req.user.id)
+    .then(comments => res.json(comments))
+    .catch((err) => res.status(500).json(err));
+});
+
+app.post('/api/addInterestingComment/:commentID', isLoggedIn, (req, res) => {
+  const commentID = req.params.commentID;
+  const userID = req.user.id;
+
+  commentDao.addInterestingComment(commentID, userID)
+    .then(result => res.status(200).json(result))
+    .catch(err => res.status(500).json(err));
+});
 
 // activate the server
 const port = 3001;
@@ -199,5 +330,5 @@ app.listen(port, (err) => {
     console.log(err);
   else 
     console.log(`Server listening at http://localhost:${port}`);
-}); 
+});
 
