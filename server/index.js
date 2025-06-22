@@ -84,12 +84,6 @@ const isLoggedIn = (req, res, next) => {
   return res.status(401).json({error: 'Not authorized'});
 }
 
-function isTotp(req, res, next) {
-  if(req.session.method === 'totp')
-    return next();
-  return res.status(401).json({ error: 'Missing TOTP authentication'});
-}
-
 // This function is used to format express-validator errors as strings
 const errorFormatter = ({ location, msg, param, value, nestedErrors }) => {
   return `${location}[${param}]: ${msg}`;
@@ -166,7 +160,7 @@ app.get('/api/posts',(req,res)=>{
     .then(posts => res.json(posts))
     .catch((err) => res.status(500).json(err))
 })
-//TODO: POSTID is undefined???
+
 app.get('/api/comments/:postID',[ check('postID').isInt({min: 1}) ],(req,res)=>{
   const errors = validationResult(req).formatWith(errorFormatter); // format error message
     if (!errors.isEmpty()) {
@@ -174,7 +168,20 @@ app.get('/api/comments/:postID',[ check('postID').isInt({min: 1}) ],(req,res)=>{
     }
   //console.log('DEBUG: isLoggedIn: '+req.isAuthenticated());
   commentDao.listComments(req.params.postID,req.isAuthenticated())
-    .then(comments => res.json(comments))
+    .then(comments =>{
+      commentDao.getNumberOfInterestingComments(req.params.postID)
+        .then(interestingCounts => {
+          //console.log('DEBUG: interestingCounts: '+JSON.stringify(interestingCounts));
+          // add the number of interesting comments to each comment
+          comments.forEach(comment => {
+            const found = interestingCounts.find(ic => ic.commentID === comment.commentID);
+            comment.numInteresting = found ? found.numInteresting : 0; // if no interesting comments, set to 0
+          });
+          //console.log('DEBUG: comments: '+JSON.stringify(comments));
+          // send the comments back as a json 
+          res.json(comments)
+        })
+    })
     .catch((err) => res.status(500).json(err))
 
 })
@@ -285,7 +292,7 @@ app.delete('/api/deleteComment/:commentID', isLoggedIn, (req, res) => {
 });
 
 app.delete('/api/deletePost/:postID', isLoggedIn, (req, res) => {
-  console.log('DEBUG: deletePost called with postID: ' + req.params.postID);
+  //console.log('DEBUG: deletePost called with postID: ' + req.params.postID);
   const errors = validationResult(req).formatWith(errorFormatter);
   if (!errors.isEmpty()) {
     return res.status(422).json(errors.errors);
@@ -312,6 +319,15 @@ app.get('/api/interestingComments/:postID', isLoggedIn, (req, res) => {
   commentDao.getInterestingComments(req.params.postID, req.user.id)
     .then(comments => res.json(comments))
     .catch((err) => res.status(500).json(err));
+});
+
+app.delete('/api/deleteInterestingComment/:commentID', isLoggedIn, (req, res) => {
+  //note that no checks are needed here, since the user can delete only "interesting flags" that he/she has added
+  const commentID = req.params.commentID;
+  const userID = req.user.id;
+  commentDao.deleteInterestingComment(commentID, userID)
+    .then(result => res.status(200).json(result))
+    .catch(err => res.status(500).json(err));
 });
 
 app.post('/api/addInterestingComment/:commentID', isLoggedIn, (req, res) => {

@@ -76,7 +76,7 @@ const addPost = async (title,text,maxComments) => {
 const editComment = async (commentId, commentText) => {
   //console.log('DEBUG: API editComment called with id: ' + id + ', commentId: ' + commentId + ', commentText: ' + commentText);
   return getJson(fetch(SERVER_URL + 'editComment/' + commentId, {
-    method: 'PUT',//PUT is used to update an existing resource
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
@@ -89,7 +89,7 @@ const editComment = async (commentId, commentText) => {
 const deleteComment = async (commentId) => {
   //console.log('DEBUG: API deleteComment called with commentId: ' + commentId);
   return getJson(fetch(SERVER_URL + 'deleteComment/' + commentId, {
-    method: 'DELETE',//DELETE is used to delete an existing resource
+    method: 'DELETE',
     credentials: 'include', 
   })
   )
@@ -98,7 +98,7 @@ const deleteComment = async (commentId) => {
 const deletePost = async (postId) => {
   //console.log('DEBUG: API deletePost called with postId: ' + postId);
   return getJson(fetch(SERVER_URL + 'deletePost/' + postId, {
-    method: 'DELETE',//DELETE is used to delete an existing resource
+    method: 'DELETE',
     credentials: 'include', 
   })
   )
@@ -108,6 +108,15 @@ const addInterestingComment = async (commentId) => {
   //console.log('DEBUG: API addInterestingComment called with commentId: ' + commentId);
   return getJson(fetch(SERVER_URL + 'addInterestingComment/' + commentId, {
     method: 'POST',//POST is used to create a new resource
+    credentials: 'include', 
+  })
+  )
+}
+
+const deleteInterestingComment = async (commentId) => {
+  //console.log('DEBUG: API deleteInterestingComment called with commentId: ' + commentId);
+  return getJson(fetch(SERVER_URL + 'deleteInterestingComment/' + commentId, {
+    method: 'DELETE',//DELETE is used to delete an existing resource
     credentials: 'include', 
   })
   )
@@ -189,5 +198,5 @@ const logOut = async() => {
   )
 }
 
-const API = {logIn, getUserInfo, logOut, totpVerify, getPosts, getComments, getPost, addComment, addPost, editComment, deleteComment, deletePost, addInterestingComment, getInterestingComments};
+const API = {logIn, getUserInfo, logOut, totpVerify, getPosts, getComments, getPost, addComment, addPost, editComment, deleteComment, deletePost, addInterestingComment, deleteInterestingComment , getInterestingComments};
 export default API;

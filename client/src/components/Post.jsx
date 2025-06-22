@@ -15,7 +15,7 @@ function PostsListLayout(props) {
                 const postsData = await API.getPosts();
                 setPosts(postsData);
             } catch (err) {
-                setErrorMessage('Error fetching posts: ' + err.message);
+                setErrorMessage('Error fetching posts.');
             }
         };
         fetchPosts();
@@ -27,7 +27,7 @@ function PostsListLayout(props) {
                 setPosts(posts.filter(post => post.id !== postId));//note in this layout there are no comments to delete
             })
             .catch((err) => {
-                setErrorMessage('Error deleting post: ' + err.message);
+                setErrorMessage('Error deleting post.');
             });
     }
 
@@ -62,8 +62,6 @@ function PostsListLayout(props) {
     </Container >);
 }
 
-
-
 function CommentsLayout(props) {
     const [post, setPost] = useState(null);
     const [comments, setComments] = useState([]);
@@ -92,14 +90,13 @@ function CommentsLayout(props) {
                 setComments(commentsData);
 
             } catch (err) {
-                setErrorMessage('Error fetching post or comments: ' + err.message);
+                setErrorMessage('Error fetching post or comments.');
             }
         };
         fetchPost();
         setDirtyBit(false); // Reset dirty bit after fetching comments
 
     }, [id, dirtyBit]);//useEffect will run when the component mounts and when the id changes
-
 
     const handleAddComment = (event) => {
         event.preventDefault();
@@ -110,7 +107,7 @@ function CommentsLayout(props) {
                 setDirtyBit(true); // Set dirty bit to true to fetch comments after adding a new comment
             })
             .catch((err) => {
-                setErrorMessage('Error adding comment: ' + err.message);
+                setErrorMessage('Error adding comment.');
             });
         setCommentText(''); // Clear the input field
     }
@@ -121,7 +118,7 @@ function CommentsLayout(props) {
 
     const handleSubmitEditComment = (event) => {
         event.preventDefault();
-        console.log('DEBUG: handleSubmitEditComment called with commentID: ' + editedComment + ' and text: ' + editedCommentText);
+        //console.log('DEBUG: handleSubmitEditComment called with commentID: ' + editedComment + ' and text: ' + editedCommentText);
         API.editComment(editedComment, editedCommentText)
             .then(() => {
                 setComments(comments.map(c => c.commentID === editedComment ? { ...c, commentText: editedCommentText } : c));
@@ -129,7 +126,7 @@ function CommentsLayout(props) {
                 setEditedCommentText(''); // Clear the text input
             })
             .catch((err) => {
-                setErrorMessage('Error editing comment: ' + err.message);
+                setErrorMessage('Error editing comment.');
             });
     }
 
@@ -139,7 +136,7 @@ function CommentsLayout(props) {
                 setComments(comments.filter(comment => comment.commentID !== commentID));
             })
             .catch((err) => {
-                setErrorMessage('Error deleting comment: ' + err.message);
+                setErrorMessage('Error deleting comment.');
             });
         setDirtyBit(true); // Set dirty bit to true to fetch comments after deleting a comment
     }
@@ -147,14 +144,24 @@ function CommentsLayout(props) {
     const handleAddInterestingComment = (commentID) => {
         API.addInterestingComment(commentID)
             .then(() => {
-                setComments(comments.map(comment => comment.commentID === commentID ? { ...comment, interesting: true } : comment));
+                setDirtyBit(true); // Set dirty bit to true to fetch comments after adding an interesting comment
             })
             .catch((err) => {
-                setErrorMessage('Error adding interesting comment: ' + err.message);
+                setErrorMessage('Error adding interesting comment.');
             });
     }
 
-    if (!post) return <div>Loading...</div>;
+    const handleDeleteInterestingComment = (commentID) => {
+        API.deleteInterestingComment(commentID)
+            .then(() => {
+                setDirtyBit(true); // Set dirty bit to true to fetch comments after deleting an interesting comment
+            })
+            .catch((err) => {
+                setErrorMessage('Error deleting interesting comment.');
+            });
+    }
+
+    if (!post) return <div>Could not load post</div>;
 
     return (
         <Container>
@@ -192,7 +199,7 @@ function CommentsLayout(props) {
                                     (
                                         <Form className="mb-3" onSubmit={handleSubmitEditComment}>
                                             <Form.Control as="textarea" rows={2} value={editedCommentText} onChange={(e) => setEditedCommentText(e.target.value)} />
-                                            <Button className='my-2' type='submit'>Edit</Button>
+                                            <Button className='my-2' type='submit'>Confirm</Button>
                                         </Form>
                                     )
                                     :
@@ -207,13 +214,13 @@ function CommentsLayout(props) {
                                 {/* since we don't have a userID in comments we check the name of the user */}
                                 {(props.loggedInTotp || (props.user && (props.user.name === comment.authorName))) && (
                                     <>
-                                            <Button onClick={() => handleShowEditCommentForm(comment.commentID)}><i className="bi bi-pencil-square"></i></Button>
+                                            {(editedComment !== comment.commentID) && <Button onClick={() => handleShowEditCommentForm(comment.commentID)}><i className="bi bi-pencil-square"></i></Button>}
                                             <Button onClick={() => handleDeleteComment(comment.commentID)}><i className="bi bi-trash"></i></Button>
                                     </>
                                 )}
                                 {props.loggedIn && (
                                     comment.interesting ? (
-                                        <Button variant="success" disabled><i className="bi bi-flag-fill"></i></Button>
+                                        <Button variant="success" onClick={() => handleDeleteInterestingComment(comment.commentID)}><i className="bi bi-flag-fill"></i></Button>
                                     ) : (
                                         <Button variant="outline-success" onClick={() => handleAddInterestingComment(comment.commentID)}><i className="bi bi-flag"></i></Button>
                                     )
@@ -221,6 +228,11 @@ function CommentsLayout(props) {
                             </Col>
                         </Row>
                     </Card.Body>
+                    {props.loggedIn && <Card.Footer className="text-muted">
+                        <Row>
+                            This comment has been flagged as interesting by {comment.numInteresting} users.
+                        </Row>
+                    </Card.Footer>}
                 </Card>
             ))
             }
@@ -232,13 +244,25 @@ function AddCommentForm(props) {
     return (
         <Form onSubmit={props.handleAddComment}>
             <Row>
-                <Col >
+                <Col>
                     <Form.Group className="mb-3" controlId="commentText">
-                        <Form.Control as="textarea" rows={2} placeholder="Write your comment here..." value={props.newCommentText} onChange={(e) => props.setCommentText(e.target.value)} />
+                        <Form.Control
+                            as="textarea"
+                            rows={2}
+                            placeholder="Write your comment here..."
+                            value={props.newCommentText}
+                            onChange={(e) => props.setCommentText(e.target.value)}
+                            minLength={1} // Set minimum length here
+                            required
+                        />
                     </Form.Group>
                 </Col>
                 <Col xs="auto">
-                    <Button variant="primary" type="submit">
+                    <Button
+                        variant="primary"
+                        type="submit"
+                        disabled={props.newCommentText.length < 1} // Disable if comment text is empty
+                    >
                         Submit
                     </Button>
                 </Col>
@@ -263,7 +287,7 @@ function CreatePostForm(props) {
                     navigate('/');
                 })
                 .catch((err) => {
-                    setErrorMessage('Error creating post: ' + err.message);
+                    setErrorMessage('Error creating post');
                 });
         } else {
             API.addPost(title, text, maxComments)
@@ -271,7 +295,7 @@ function CreatePostForm(props) {
                     navigate('/');
                 })
                 .catch((err) => {
-                    setErrorMessage('Error creating post: ' + err.message);
+                    setErrorMessage('Error creating post');
                 });
         }
     }
@@ -282,8 +306,8 @@ function CreatePostForm(props) {
             <Col xs={4}>
                 <Form onSubmit={handlePostCreation}>
                     <Form.Group>
-                        <Form.Control as="textarea" rows={1} placeholder='Insert here the title' value={title} onChange={(e) => setTitle(e.target.value)} className="mb-2" />
-                        <Form.Control as="textarea" rows={5} placeholder='Insert here the text' value={text} onChange={(e) => setText(e.target.value)} className="mb-2" />
+                        <Form.Control type='text' required placeholder='Insert here the title' value={title} onChange={(e) => setTitle(e.target.value)} className="mb-2" />
+                        <Form.Control as="textarea" required rows={5} placeholder='Insert here the text' value={text} onChange={(e) => setText(e.target.value)} className="mb-2" />
                         <Form.Check
                             type="checkbox"
                             id="enable-max-comments"

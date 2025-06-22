@@ -4,18 +4,16 @@ import './App.css';
 
 import {useState, useEffect } from 'react';
 import { Container } from 'react-bootstrap';
-import { Routes, Route, Navigate, useNavigate } from 'react-router';
+import { Routes, Route, Navigate } from 'react-router';
 import { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout, CreatePostLayout,} from './components/Layout';
 import { CommentsLayout, PostsListLayout } from './components/Post';
 import API from './API.js';
 
 function App() {
-  const navigate = useNavigate();
   const [loggedIn, setLoggedIn] = useState(false);
   const [user, setUser] = useState(null);//user info
   const [loggedInTotp, setLoggedInTotp] = useState(false);
   const [message, setMessage] = useState('');
-  const [dirty, setDirty] = useState(true);
 
   // If an error occurs, the error message will be shown using a state.
   const handleErrors = (err) => {
@@ -35,10 +33,8 @@ function App() {
 
     if (msg === 'Not authenticated')
       setTimeout(() => {  // do logout in the app state
-        setUser(undefined); setLoggedIn(false); setLoggedInTotp(false); setDirty(true);
+        setUser(undefined); setLoggedIn(false); setLoggedInTotp(false);
       }, 2000);
-    else
-      setTimeout(() => setDirty(true), 2000);  // Fetch the current version from server, after a while
   }
 
   useEffect(() => {

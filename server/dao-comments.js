@@ -118,3 +118,23 @@ exports.addInterestingComment = (commentID, userID) => {
         });
     });
 }
+
+exports.deleteInterestingComment = (commentID, userID) => {
+    return new Promise((resolve, reject) => {
+        const sql = 'DELETE FROM interestingComments WHERE commentID = ? AND userID = ?';
+        db.run(sql, [commentID, userID], function (err) {
+            if (err) { reject(err); }
+            resolve(this.changes > 0); // returns true if a row was deleted
+        });
+    });
+}
+
+exports.getNumberOfInterestingComments = (postID) => {
+    return new Promise((resolve, reject) => {
+        const sql = 'SELECT comments.id AS commentID,  COUNT(interestingComments.userID) AS numInteresting FROM comments LEFT JOIN interestingComments ON comments.id = interestingComments.commentID WHERE comments.postID = ? GROUP BY comments.id';
+        db.all(sql, [postID], (err, rows) => {
+            if (err) { reject(err); }
+            resolve(rows);
+        });
+    });
+}

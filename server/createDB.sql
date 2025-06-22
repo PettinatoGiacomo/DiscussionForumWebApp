@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS "users" (
 );
 INSERT INTO "users" VALUES (1,'u1@p.it','Admin1','ab6a7e820f9ffeb5426a8244eb5981281a7757ff1063f897859c7bb3a69bed99','emmhajs8jcijs4bv','LXBSMDTMSP2I5XFXIYRGFVWSFI');
 INSERT INTO "users" VALUES (2,'u2@p.it','Admin2','45189136d40eebd23c859b8703414d689a5521e22912bb541ecff7ed293ef8e8','88o7o6oru4cdh6kv','LXBSMDTMSP2I5XFXIYRGFVWSFI');
-INSERT INTO "users" VALUES (3,'u3@p.it','User1','13200da65996d56293b92f1a33f68708bc0f28c51fcd642045dbe09b6e88231a','o4n2f06q6lbmgh0u','');
-INSERT INTO "users" VALUES (4,'u4@p.it','User2','4153ffb2436448e674ef9f02b78912d8e6cbc48239e11e16ec160c12637b9938','pp3nnb8vdy14w3xw','');
-INSERT INTO "users" VALUES (5,'u5@p.it','User3','8832b1b39455635e06cdd264e31a7457a6333d639c5fb5ba0784a3b0db7e2865','r0ec4ejy7c2g4ujv','');
+INSERT INTO "users" VALUES (3,'u3@p.it','User3','13200da65996d56293b92f1a33f68708bc0f28c51fcd642045dbe09b6e88231a','o4n2f06q6lbmgh0u','');
+INSERT INTO "users" VALUES (4,'u4@p.it','User4','4153ffb2436448e674ef9f02b78912d8e6cbc48239e11e16ec160c12637b9938','pp3nnb8vdy14w3xw','');
+INSERT INTO "users" VALUES (5,'u5@p.it','User5','8832b1b39455635e06cdd264e31a7457a6333d639c5fb5ba0784a3b0db7e2865','r0ec4ejy7c2g4ujv','');
 
 CREATE TABLE IF NOT EXISTS "posts" (
 	"id"	INTEGER NOT NULL,
@@ -42,7 +42,8 @@ Stay tuned for more engaging and useful content in the coming days!', 20, '2025-
 2. Create a dedicated workspace.
 3. Take regular breaks.
 Hope these help you too!', 15, '2025-06-08 11:15:00'),
-(3, 'Top 10 JavaScript Libraries in 2025', 'JavaScript is evolving rapidly, and developers need to stay up to date.  Here are my top 10 must-know libraries this year, including tools for UI, state management, and performance optimization. 
+(3, 'Top 10 JavaScript Libraries in 2025', 'JavaScript is evolving rapidly, and developers need to stay up to date.
+Here are my top 10 must-know libraries this year, including tools for UI, state management, and performance optimization. 
 Check out the full list and let me know your favorites!', 30, '2025-06-08 12:45:00'),
 (4, 'Why I Switched to Linux', 'After spending years using Windows, I decided to take the plunge into Linux.
 This post covers my reasons for switching, the learning curve, and why I''m not looking back. If you''ve been considering Linux, this might help you decide.', 25, '2025-06-08 14:00:00'),
@@ -61,7 +62,8 @@ In this post, I share my minimalist setup that helps me stay focused and distrac
 This post reflects on what I learned, the habits I built, and how it transformed my coding journey.
 Highly recommended for anyone wanting to improve their skills.', 35, '2025-06-08 19:30:00'),
 (5, 'Dark Mode vs Light Mode', 'It''s the age-old debate: dark mode or light mode?
-In this post, we compare the pros and cons of both UI themes, backed by science and user preferences. Which one do you prefer, and why? Join the conversation!', 4, '2025-06-08 20:10:00');
+In this post, we compare the pros and cons of both UI themes, backed by science and user preferences. Which one do you prefer, and why?
+Join the conversation!', 4, '2025-06-08 20:10:00');
 
 CREATE TABLE IF NOT EXISTS "comments" (
 	"id"	INTEGER NOT NULL,
@@ -94,11 +96,11 @@ INSERT INTO comments (postID, authorID, text, timestamp) VALUES
 (2, NULL, 'Nice advice, bookmarking this for later.', '2025-06-08 11:40:00'),
 (3, NULL, 'Interesting list! Might try some of these soon.', '2025-06-08 13:15:00'),
 (4, NULL, 'I’ve been thinking about switching to Linux too.', '2025-06-08 14:30:00'),
-(5, NULL, 'AI is evolving so fast—it’s mind-blowing.', '2025-06-08 15:50:00Z'),
+(5, NULL, 'AI is evolving so fast—it’s mind-blowing.', '2025-06-08 15:50:00'),
 (6, NULL, 'Heard great things about “Deep Work”—adding to my list.', '2025-06-08 16:40:00'),
 (7, NULL, 'Just what I needed to read today. Thanks!', '2025-06-08 17:20:00'),
 (8, NULL, 'Minimalist setups really boost my focus too.', '2025-06-08 18:10:00'),
-(9, NULL, 'Congrats! I’m on day 42 right now.', '2025-06-08 19:40:00Z'),
+(9, NULL, 'Congrats! I’m on day 42 right now.', '2025-06-08 19:40:00'),
 (10, NULL, 'I switch themes depending on time of day!', '2025-06-08 20:25:00');
 
 CREATE TABLE IF NOT EXISTS "interestingComments" (
