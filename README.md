@@ -1,6 +1,17 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/6EO6Vzam)
-# Exam #1: "Forum"
-## Student: s346259 PETTINATO GIACOMO 
+## Discussion Forum Web Application
+
+This project is a full-stack discussion-forum built with a React client and an Express/SQLite server.
+
+The main user interface is implemented with React, React Router, and React-Bootstrap. The backend exposes REST APIs for authentication, posts, comments, and interesting-comment flags. 
+The relevant implementation is documented in this file (README.md), with the frontend in client/ and the backend in server/.
+
+The application supports:
+
+* User login with email and password.
+* Optional two-factor authentication using TOTP for administrator accounts.
+* Public or anonymous comments,(anonymous comments are displayed as written by “Anonymous”).
+* Viewing, adding, editing, and deleting comments.
+* Marking comments as interesting and viewing how many users are interested in them.
 
 ## React Client Application Routes
 
@@ -200,6 +211,7 @@ The DB also contains rules for comments and post uniqueness.
 
 ## Users Credentials
 
+Credentials for testing
 
 |username|email|password|
 |---|---|---|
@@ -208,5 +220,3 @@ The DB also contains rules for comments and post uniqueness.
 |user3|u3@p.it|pwd|
 |user4|u4@p.it|pwd|
 |user5|u5@p.it|pwd|
-
-
