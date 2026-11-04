@@ -211,12 +211,15 @@ The DB also contains rules for comments and post uniqueness.
 
 ## Users Credentials
 
-Credentials for testing
+The application does not currently support user registration.
+You can use the following preconfigured accounts to test the application.
 
-|username|email|password|
-|---|---|---|
-|admin1|u1@p.it|pwd|
-|admin2|u2@p.it|pwd|
-|user3|u3@p.it|pwd|
-|user4|u4@p.it|pwd|
-|user5|u5@p.it|pwd|
+|username|email|password|2FA secret|
+|---|---|---|---|
+|admin1|u1@p.it|pwd|LXBSMDTMSP2I5XFXIYRGFVWSFI|
+|admin2|u2@p.it|pwd|LXBSMDTMSP2I5XFXIYRGFVWSFI|
+|user3|u3@p.it|pwd||
+|user4|u4@p.it|pwd||
+|user5|u5@p.it|pwd||
+
+These credentials are publicly available for testing purposes only.
